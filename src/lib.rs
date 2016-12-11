@@ -26,8 +26,22 @@
 //! ## Example
 //!
 //! ``` rust,no_run
+//! extern crate bloom_filter;
+//!
+//! use bloom_filter::BloomBuilder;
 //!
 //! fn main() {
+//!     let elements = 2u64.pow(20);
+//!     let fpr = 0.01;
+//!     let mut bloom = BloomBuilder::new(elements).with_fpr(fpr).finish().unwrap();
+//!
+//!     bloom.insert("foo");
+//!     bloom.insert("bar");
+//!     bloom.insert("baz");
+//!
+//!     if bloom.lookup("foo") {
+//!         println!("found foo in the bloom filter");
+//!     }
 //! }
 //! ```
 
@@ -43,7 +57,10 @@ use std::marker::PhantomData;
 use bit_vec::BitVec;
 use siphasher::sip::SipHasher24;
 
-
+/// BloomError
+///
+/// The error returned by `BloomBuilder` if it is unable to construct a bloom filter
+/// because no parameter has been set.
 #[derive(Debug)]
 pub enum BloomError {
     NoParameterSet,
@@ -79,6 +96,11 @@ enum BloomParameter {
     FPR(f64), // false positive rate
 }
 
+/// BloomBuilder
+///
+/// A struct used to create bloom filters. The user must specify the number of
+/// elements they expect to insert into the bloom filter, and an aditional constraint:
+/// either the size of the bloom filter in bits, or the desired false positive ratio.
 #[derive(Debug)]
 pub struct BloomBuilder {
     elements: u64,
@@ -86,6 +108,8 @@ pub struct BloomBuilder {
 }
 
 impl BloomBuilder {
+    /// Create a new BloomBuilder. `elements` is the number of elements that will be
+    /// inserted into the bloom filter.
     pub fn new(elements: u64) -> BloomBuilder {
         BloomBuilder {
             elements: elements,
@@ -93,16 +117,22 @@ impl BloomBuilder {
         }
     }
 
+    /// Set the size, in bits, of the desired bloom filter. Either `with_size` or `with_fpr`
+    /// must be called.
     pub fn with_size(mut self, size: u64) -> BloomBuilder {
         self.parameter = BloomParameter::Size(size);
         self
     }
 
+    /// Set the false positive ratio of the desired bloom filter. Either `with_size` or
+    /// `with_fpr` must be called.
     pub fn with_fpr(mut self, p: f64) -> BloomBuilder {
         self.parameter = BloomParameter::FPR(p);
         self
     }
 
+    /// Once the desired size of false positive ratio has been set, `finish` is used to
+    /// return the desired bloom filter.
     pub fn finish<T>(&self) -> Result<Bloom<T>, BloomError>
         where T: Hash
     {
@@ -122,6 +152,9 @@ impl BloomBuilder {
         }
     }
 
+    // private method to calculate the minimum possible size of the bloom filter given the
+    // number of elements that will be inserted into the bloom filter and the desired false
+    // positive ratio `p`
     fn min_size(num_elements: u64, p: f64) -> u64 {
         let n = num_elements as f64;
         // m = -1 * n * ln(p) / (ln(2) ^ 2)
@@ -129,6 +162,9 @@ impl BloomBuilder {
         m.ceil() as u64
     }
 
+    // private method to calculate the optimal number of hash functions given the number of
+    // elements that will be inserted into the bloom filter and the desired size of the bloom
+    // filter
     fn optimal_hash_count(num_elements: u64, num_bits: u64) -> u32 {
         let m = num_bits as f64;
         let n = num_elements as f64;
@@ -138,6 +174,9 @@ impl BloomBuilder {
     }
 }
 
+/// Bloom
+///
+/// An implementation of a bloom filter.
 #[derive(Debug)]
 pub struct Bloom<T: Hash> {
     bits: BitVec,
@@ -163,11 +202,13 @@ impl<T: Hash> Bloom<T> {
         }
     }
 
+    // private method to create the hash functions for a new bloom filter
     fn get_hasher() -> SipHasher24 {
         let mut rng = rand::thread_rng();
         SipHasher24::new_with_keys(rand::Rand::rand(&mut rng), rand::Rand::rand(&mut rng))
     }
 
+    // insert a key into the bloom filter
     pub fn insert(&mut self, key: T) {
         // we need to save the results of the first two hashes for when we need to get more
         // than two hashes since we use double hashing uses those hashes to compute further hashes
@@ -178,6 +219,7 @@ impl<T: Hash> Bloom<T> {
         }
     }
 
+    // check if a key may have been inserted into the bloom filter
     pub fn lookup(&self, item: T) -> bool {
         let mut hashes = [0u64, 0u64];
         for i in 0..self.k {
@@ -190,6 +232,8 @@ impl<T: Hash> Bloom<T> {
         true
     }
 
+    // insert a key into the filter and return a bool indicating whether the key may have
+    // been inserted already or not
     pub fn lookup_and_insert(&mut self, key: T) -> bool {
         let mut hashes = [0u64, 0u64];
         let mut found = true;
@@ -204,6 +248,7 @@ impl<T: Hash> Bloom<T> {
         found
     }
 
+    // private method to get the hash of the key
     fn get_hash(&self, hashes: &mut [u64; 2], key: &T, i: u32) -> usize {
         if i < 2 {
             let hasher = &mut self.hashers[i as usize].clone();
