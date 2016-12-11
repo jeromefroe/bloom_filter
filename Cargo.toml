@@ -1,0 +1,16 @@
+[package]
+name = "bloom_filter"
+version = "0.1.0"
+authors = ["Jerome Froelich <jeromefroelic@hotmail.com>"]
+description = "A bloom filter implementation"
+homepage = "https://github.com/jeromefroe/bloom_filter"
+repository = "https://github.com/jeromefroe/bloom_filter.git"
+documentation = "https://docs.rs/bloom_filter/"
+readme = "README.md"
+license = "MIT"
+keywords = ["bloom", "filter"]
+
+[dependencies]
+bit-vec = "0.4.3"
+rand = "0.3.15"
+siphasher = "0.2.0"
