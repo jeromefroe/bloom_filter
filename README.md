@@ -6,6 +6,8 @@
 [![docs.rs](https://docs.rs/bloom_filter/badge.svg)](https://docs.rs/bloom_filter/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jeromefroe/bloom_filter/master/LICENSE)
 
+[Documentation](https://docs.rs/bloom_filter/)
+
 An implementation of a bloom filter as as described in
 [Space/Time Trade-offs in Hash Coding with Allowable Errors] (http://dmod.eu/deca/ft_gateway.cfm.pdf).
 
