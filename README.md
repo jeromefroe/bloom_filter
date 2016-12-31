@@ -1,7 +1,7 @@
 # Bloom Filter
 
-[![Build Status](https://travis-ci.org/jeromefroe/jmphash-rs.svg?branch=master)](https://travis-ci.org/jeromefroe/bloom_filter)
-[![Coverage Status](https://coveralls.io/repos/github/jeromefroe/jmphash-rs/badge.svg?branch=master)](https://coveralls.io/github/jeromefroe/bloom_filter?branch=master)
+[![Build Status](https://travis-ci.org/jeromefroe/bloom_filter.svg?branch=master)](https://travis-ci.org/jeromefroe/bloom_filter)
+[![Coverage Status](https://coveralls.io/repos/github/jeromefroe/bloom_filter/badge.svg?branch=master)](https://coveralls.io/github/jeromefroe/bloom_filter?branch=master)
 [![crates.io](https://img.shields.io/crates/v/bloom_filter.svg)](https://crates.io/crates/bloom_filter/)
 [![docs.rs](https://docs.rs/bloom_filter/badge.svg)](https://docs.rs/bloom_filter/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jeromefroe/bloom_filter/master/LICENSE)
