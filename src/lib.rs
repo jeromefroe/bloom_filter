@@ -69,11 +69,11 @@ pub enum BloomError {
 impl fmt::Display for BloomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            BloomError::NoParameterSet => {
-                write!(f,
-                       "Must set either the desired size or false positive ratio to create a \
-                        bloom filter")
-            }
+            BloomError::NoParameterSet => write!(
+                f,
+                "Must set either the desired size or false positive ratio to create a \
+                 bloom filter"
+            ),
         }
     }
 }
@@ -83,7 +83,7 @@ impl Error for BloomError {
         match *self {
             BloomError::NoParameterSet => {
                 "Must set either the desired size or false positive ratio to create a \
-                        bloom filter"
+                 bloom filter"
             }
         }
     }
@@ -93,7 +93,7 @@ impl Error for BloomError {
 enum BloomParameter {
     Empty,
     Size(u64), // number of bits in the bloom filter
-    FPR(f64), // false positive rate
+    FPR(f64),  // false positive rate
 }
 
 /// BloomBuilder
@@ -112,7 +112,7 @@ impl BloomBuilder {
     /// inserted into the bloom filter.
     pub fn new(elements: u64) -> BloomBuilder {
         BloomBuilder {
-            elements: elements,
+            elements,
             parameter: BloomParameter::Empty,
         }
     }
@@ -134,7 +134,8 @@ impl BloomBuilder {
     /// Once the desired size of false positive ratio has been set, `finish` is used to
     /// return the desired bloom filter.
     pub fn finish<T>(&self) -> Result<Bloom<T>, BloomError>
-        where T: Hash
+    where
+        T: Hash,
     {
         match self.parameter {
             BloomParameter::Empty => Err(BloomError::NoParameterSet),
@@ -193,10 +194,9 @@ pub struct Bloom<T: Hash> {
 
 impl<T: Hash> Bloom<T> {
     fn new(size: u64, k: u32) -> Self {
-
         Bloom {
             bits: BitVec::from_elem(size as usize, false),
-            k: k,
+            k,
             hashers: [Bloom::<T>::get_hasher(), Bloom::<T>::get_hasher()],
             marker: PhantomData,
         }
@@ -251,16 +251,15 @@ impl<T: Hash> Bloom<T> {
     // private method to get the hash of the key
     fn get_hash(&self, hashes: &mut [u64; 2], key: &T, i: u32) -> usize {
         if i < 2 {
-            let hasher = &mut self.hashers[i as usize].clone();
-            key.hash(hasher);
+            let mut hasher = self.hashers[i as usize];
+            key.hash(&mut hasher);
             let hash = hasher.finish();
             hashes[i as usize] = hash;
             hash as usize
         } else {
             // use double hashing to get any additional hashes
-            hashes[0]
-                .wrapping_add((i as u64).wrapping_mul(hashes[1]) %
-                              self.bits.len() as u64) as usize
+            hashes[0].wrapping_add(u64::from(i).wrapping_mul(hashes[1]) % self.bits.len() as u64)
+                as usize
         }
     }
 }
@@ -272,7 +271,10 @@ mod tests {
     #[test]
     fn test_with_size() {
         let size = 2u64.pow(20);
-        let b = BloomBuilder::new(size / 2).with_size(size).finish::<i64>().unwrap();
+        let b = BloomBuilder::new(size / 2)
+            .with_size(size)
+            .finish::<i64>()
+            .unwrap();
         assert_eq!(b.bits.len() as u64, size);
         assert_eq!(b.k, 2);
     }
@@ -281,7 +283,10 @@ mod tests {
     fn test_with_fpr() {
         let elements = 2u64.pow(20);
         let fpr = 0.01;
-        let b = BloomBuilder::new(elements).with_fpr(fpr).finish::<i64>().unwrap();
+        let b = BloomBuilder::new(elements)
+            .with_fpr(fpr)
+            .finish::<i64>()
+            .unwrap();
         println!("{:?}", b.bits.len());
         assert_eq!(b.k, 7);
     }
@@ -290,7 +295,10 @@ mod tests {
     fn test_operations() {
         let elements = 2u64.pow(20);
         let fpr = 0.01;
-        let mut b = BloomBuilder::new(elements).with_fpr(fpr).finish::<i64>().unwrap();
+        let mut b = BloomBuilder::new(elements)
+            .with_fpr(fpr)
+            .finish::<i64>()
+            .unwrap();
 
         assert!(!b.lookup(3));
         assert!(!b.lookup(23));
