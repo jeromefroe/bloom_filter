@@ -1,29 +1,30 @@
-language: rust
 sudo: false
 
+language: rust
+cache: cargo
+env:
+  global:
+  # Prevent dead code elimination to improve code coverage.
+  - RUSTFLAGS="-C link-dead-code"
 rust:
   - stable
   - beta
   - nightly
-
 matrix:
-  allow_failures:
-    - rust: nightly
-
-env:
-  global:
-  - RUSTFLAGS="-C link-dead-code"
-
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
-      - libiberty-dev
+  fast_finish: true
+  include:
+  - env: NAME='format'
+    rust: nightly
+    install:
+    - rustup component add rustfmt-preview
+    script:
+    - cargo fmt -- --write-mode=check
+  - env: NAME='lint'
+    rust: nightly
+    install:
+    - cargo install clippy || echo clippy already installed
+    script:
+    - cargo clippy
 
 after_success: |
   wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
